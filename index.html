@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Notentrainer CH – Notenlesen & Musiktheorie</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    html {
+      font-size: 16px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overscroll-behavior: none;
+    }
+    .piano-white {
+      transition: background-color 0.08s ease, transform 0.05s ease;
+    }
+    .piano-white:active, .piano-white.active-key {
+      background-color: #e2e8f0;
+      transform: translateY(2px);
+    }
+    .piano-black {
+      transition: background-color 0.08s ease, transform 0.05s ease;
+    }
+    .piano-black:active, .piano-black.active-key {
+      background-color: #334155;
+      transform: translateY(2px);
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.25s ease-in-out;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP NAVIGATION -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-sm shrink-0">
+          ♩
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-lg leading-tight">Notentrainer <span class="text-xs font-semibold bg-red-100 text-red-700 px-1.5 py-0.5 rounded ml-1">CH</span></h1>
+          <p class="text-xs text-slate-500 hidden sm:block">Notenlesen & Theorie (H / B / -is / -es)</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- SCHRIFTGRÖSSE BUTTONS -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200" title="Schriftgrösse anpassen">
+          <button type="button" onclick="changeFontSize(-1)" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 hover:bg-white hover:shadow-sm transition" aria-label="Schrift verkleinern">
+            A−
+          </button>
+          <button type="button" onclick="changeFontSize(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 hover:bg-white hover:shadow-sm transition" aria-label="Schrift vergrössern">
+            A+
+          </button>
+        </div>
+
+        <nav class="flex bg-slate-100 p-1 rounded-xl gap-1">
+          <button id="nav-train" onclick="switchTab('train')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition">
+            Üben
+          </button>
+          <button id="nav-theory" onclick="switchTab('theory')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 transition">
+            Theorie
+          </button>
+          <button id="nav-settings" onclick="switchTab('settings')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 transition">
+            Einstellungen
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 flex flex-col">
+
+    <!-- ==================== TAB 1: ÜBEN ==================== -->
+    <section id="tab-train" class="flex-1 flex flex-col justify-between gap-4">
+
+      <!-- PRE-START SETUP CARD -->
+      <div id="start-screen" class="flex-1 flex items-center justify-center py-4">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm max-w-lg w-full p-6 sm:p-8 animate-pop">
+          <div class="text-center mb-6">
+            <span class="inline-block px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-2">Bereit zum Start</span>
+            <h2 class="text-2xl font-bold text-slate-900">Übungseinheit konfigurieren</h2>
+            <p class="text-sm text-slate-500 mt-1">Wähle Zeitdauer und Eingabemethode, bevor die Uhr startet.</p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Dauer Dropdown (Standard: 1 Minute) -->
+            <div>
+              <label for="start-duration" class="block text-sm font-semibold text-slate-700 mb-1.5">Dauer der Session</label>
+              <select id="start-duration" onchange="syncStartOptions()" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none">
+                <option value="60" selected>1 Minute</option>
+                <option value="120">2 Minuten</option>
+                <option value="180">3 Minuten</option>
+                <option value="240">4 Minuten</option>
+                <option value="300">5 Minuten</option>
+                <option value="360">6 Minuten</option>
+                <option value="420">7 Minuten</option>
+                <option value="480">8 Minuten</option>
+                <option value="540">9 Minuten</option>
+                <option value="600">10 Minuten</option>
+                <option value="0">Unendlich (kein Zeitlimit)</option>
+              </select>
+            </div>
+
+            <!-- Antwortmodus -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Antworten mit</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" id="start-input-piano" onclick="setInputMode('piano')" class="py-2.5 px-2 rounded-xl border text-xs sm:text-sm font-semibold transition">
+                  🎹 Pianotasten
+                </button>
+                <button type="button" id="start-input-buttons" onclick="setInputMode('buttons')" class="py-2.5 px-2 rounded-xl border text-xs sm:text-sm font-semibold transition">
+                  🔤 Notennamen
+                </button>
+                <button type="button" id="start-input-both" onclick="setInputMode('both')" class="py-2.5 px-2 rounded-xl border text-xs sm:text-sm font-semibold transition">
+                  Beides
+                </button>
+              </div>
+            </div>
+
+            <!-- Aktive Parameter Info -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-slate-600">
+              <div>
+                <span class="font-semibold text-slate-800">Aktueller Bereich:</span>
+                <span id="start-summary-text" class="ml-1">Violinschlüssel · A3 – G5 · Ohne Versetzungszeichen</span>
+              </div>
+              <button type="button" onclick="switchTab('settings')" class="text-indigo-600 font-bold hover:underline shrink-0 ml-2">
+                Ändern
+              </button>
+            </div>
+
+            <button type="button" onclick="startSession()" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-base shadow-sm transition mt-2">
+              ▶ Session starten
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE TRAINING AREA -->
+      <div id="active-training-area" class="hidden flex-1 flex flex-col justify-between gap-4">
+        <!-- STATS BAR -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Punkte</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span id="stat-score" class="text-2xl font-bold text-indigo-600">0</span>
+              <span class="text-xs text-slate-400">Pkt.</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Korrekt</span>
+            <div class="flex items-baseline gap-1.5 mt-0.5">
+              <span id="stat-correct" class="text-2xl font-bold text-emerald-600">0</span>
+              <span class="text-xs text-slate-400">/ <span id="stat-total">0</span></span>
+            </div>
+          </div>
+
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Genauigkeit</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span id="stat-accuracy" class="text-2xl font-bold text-slate-800">100%</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Zeit</span>
+            <div class="flex items-center justify-between mt-0.5">
+              <span id="stat-timer" class="text-2xl font-bold text-slate-800">01:00</span>
+            </div>
+          </div>
+
+          <div class="col-span-2 sm:col-span-1 bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center">
+            <button onclick="finishSession('Manuell beendet')" class="w-full h-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition">
+              Auswertung / Ende
+            </button>
+          </div>
+        </div>
+
+        <!-- NOTEN-ANZEIGE (STAFF CARD) -->
+        <div id="staff-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[235px]">
+          <div class="w-full flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span id="badge-clef" class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-medium">Violinschlüssel</span>
+            <div id="feedback-banner" class="h-6 flex items-center justify-center font-semibold text-sm transition-opacity"></div>
+            <button onclick="playCurrentNoteSound()" class="flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md font-medium transition">
+              🔊 Ton hören
+            </button>
+          </div>
+
+          <!-- SVG NOTENSYSTEM -->
+          <div class="w-full max-w-md flex justify-center my-1">
+            <svg id="staff-svg" viewBox="0 0 360 190" class="w-full h-auto max-h-[205px] overflow-visible"></svg>
+          </div>
+        </div>
+
+        <!-- EINGABEBEREICH (BUTTONS & KLAVIATUR) -->
+        <div class="flex flex-col gap-3">
+          <!-- NOTENNAMEN-BUTTONS -->
+          <div id="input-buttons-container" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="grid grid-cols-7 gap-1.5 sm:gap-2.5">
+              <button onclick="handleAnswer('C')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">C</button>
+              <button onclick="handleAnswer('D')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">D</button>
+              <button onclick="handleAnswer('E')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">E</button>
+              <button onclick="handleAnswer('F')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">F</button>
+              <button onclick="handleAnswer('G')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">G</button>
+              <button onclick="handleAnswer('A')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">A</button>
+              <button onclick="handleAnswer('H')" class="note-btn py-3.5 sm:py-4 rounded-xl bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 border border-slate-200 font-bold text-lg sm:text-xl text-slate-800 transition">H</button>
+            </div>
+
+            <!-- Versetzungszeichen-Buttons (nur sichtbar wenn aktiviert) -->
+            <div id="accidental-buttons-row" class="hidden grid-cols-5 gap-1.5 sm:gap-2.5 mt-2.5 pt-2.5 border-t border-slate-100">
+              <button onclick="handleAnswer('Cis/Des')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm transition">Cis / Des</button>
+              <button onclick="handleAnswer('Dis/Es')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm transition">Dis / Es</button>
+              <button onclick="handleAnswer('Fis/Ges')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm transition">Fis / Ges</button>
+              <button onclick="handleAnswer('Gis/As')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm transition">Gis / As</button>
+              <button onclick="handleAnswer('Ais/B')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm transition">Ais / B</button>
+            </div>
+          </div>
+
+          <!-- INTERAKTIVE KLAVIATUR -->
+          <div id="input-piano-container" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-slate-500">Klaviatur (Oktavlage frei wählbar, z. B. irgendein C)</span>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                <input type="checkbox" id="toggle-piano-labels" onchange="renderPiano()" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                Tasten beschriften
+              </label>
+            </div>
+            <div id="piano-wrapper" class="relative w-full h-36 sm:h-44 select-none overflow-hidden rounded-xl border border-slate-300 bg-slate-900">
+              <!-- Wird per JS gerendert -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: THEORIE ==================== -->
+    <section id="tab-theory" class="hidden flex-1 flex flex-col gap-5">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <h2 class="text-xl font-bold text-slate-900">Musiktheorie – Nachschlagewerk & Grundlagen</h2>
+        <p class="text-sm text-slate-600 mt-1">Wähle ein Thema aus, um die Grundlagen für das Notenlesen auf dem iPad nachzuschlagen.</p>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          <button onclick="showTheoryModule(1)" id="th-btn-1" class="th-tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white transition">1. Notensystem & Tonübersicht</button>
+          <button onclick="showTheoryModule(2)" id="th-btn-2" class="th-tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">2. Eselsbrücken & Fixpunkte</button>
+          <button onclick="showTheoryModule(3)" id="th-btn-3" class="th-tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">3. Pianotastatur & das C</button>
+          <button onclick="showTheoryModule(4)" id="th-btn-4" class="th-tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">4. Halbtonschritte, Kreuz & B</button>
+        </div>
+      </div>
+
+      <!-- MODUL 1: NOTENSYSTEM & TONÜBERSICHT -->
+      <div id="theory-mod-1" class="theory-module bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <h3 class="text-lg font-bold text-slate-900">Aufbau des Notensystems & Tonübersicht</h3>
+
+        <div class="grid md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+            <p>Ein Notensystem besteht aus <strong>5 Notenlinien</strong> und <strong>4 Zwischenräumen</strong> dazwischen.</p>
+            <div class="p-3.5 bg-indigo-50 border border-indigo-100 rounded-xl">
+              <p class="font-bold text-indigo-900 mb-1">Wichtige Zählregel:</p>
+              <p class="text-indigo-800">Sowohl die <strong>5 Linien</strong> als auch die <strong>4 Zwischenräume</strong> werden immer <strong>von unten nach oben</strong> gezählt!</p>
+            </div>
+            <p>Je weiter oben ein Notenkopf steht, desto <strong>höher</strong> klingt der Ton. Reichen die 5 Linien nicht aus, verwendet man kurze <strong>Hilfslinien</strong> oberhalb oder unterhalb des Systems.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-center">
+            <svg viewBox="0 0 340 160" class="w-full max-w-sm">
+              <line x1="70" y1="35" x2="270" y2="35" stroke="#334155" stroke-width="2" />
+              <line x1="70" y1="55" x2="270" y2="55" stroke="#334155" stroke-width="2" />
+              <line x1="70" y1="75" x2="270" y2="75" stroke="#334155" stroke-width="2" />
+              <line x1="70" y1="95" x2="270" y2="95" stroke="#334155" stroke-width="2" />
+              <line x1="70" y1="115" x2="270" y2="115" stroke="#334155" stroke-width="2" />
+
+              <text x="15" y="119" font-size="11" fill="#4f46e5" font-weight="bold">1. Linie</text>
+              <text x="15" y="99" font-size="11" fill="#64748b">2. Linie</text>
+              <text x="15" y="79" font-size="11" fill="#64748b">3. Linie</text>
+              <text x="15" y="59" font-size="11" fill="#64748b">4. Linie</text>
+              <text x="15" y="39" font-size="11" fill="#4f46e5" font-weight="bold">5. Linie</text>
+
+              <circle cx="170" cy="105" r="5" fill="#059669" />
+              <circle cx="170" cy="85" r="5" fill="#059669" />
+              <circle cx="170" cy="65" r="5" fill="#059669" />
+              <circle cx="170" cy="45" r="5" fill="#059669" />
+
+              <text x="278" y="109" font-size="11" fill="#059669" font-weight="bold">1. ZR</text>
+              <text x="278" y="89" font-size="11" fill="#059669" font-weight="bold">2. ZR</text>
+              <text x="278" y="69" font-size="11" fill="#059669" font-weight="bold">3. ZR</text>
+              <text x="278" y="49" font-size="11" fill="#059669" font-weight="bold">4. ZR</text>
+              <text x="170" y="145" font-size="11" fill="#475569" text-anchor="middle" font-weight="bold">↑ Zählrichtung: immer von unten nach oben ↑</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- NACHSCHLAGE-TONLEITER VIOLINSCHLÜSSEL -->
+        <div class="pt-4 border-t border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-900">Nachschlage-Übersicht: Violinschlüssel (A3 bis G5)</h4>
+            <span class="text-xs text-slate-500">Tippe auf eine Note zum Hören</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 overflow-x-auto">
+            <svg id="ref-treble-svg" viewBox="0 0 760 175" class="w-full min-w-[640px] h-auto"></svg>
+          </div>
+        </div>
+
+        <!-- NACHSCHLAGE-TONLEITER BASSSCHLÜSSEL -->
+        <div class="pt-2 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-900">Nachschlage-Übersicht: Bassschlüssel / F-Schlüssel (C3 bis H3)</h4>
+            <span class="text-xs text-slate-500">Tippe auf eine Note zum Hören</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 overflow-x-auto">
+            <svg id="ref-bass-svg" viewBox="0 0 760 175" class="w-full min-w-[640px] h-auto"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODUL 2: ESELSBRÜCKEN & FIXPUNKTE -->
+      <div id="theory-mod-2" class="theory-module hidden bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <h3 class="text-lg font-bold text-slate-900">Eselsbrücken & Fixpunkte im Violinschlüssel</h3>
+        <p class="text-sm text-slate-600">Statt jede Note mühsam abzuzählen, merkst du dir feste Ankerpunkte im Notensystem:</p>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+            <div class="text-xs font-bold uppercase text-amber-700 mb-1">Fixpunkt unter dem System</div>
+            <div class="text-2xl font-extrabold text-amber-900 mb-1">C (c') = Hilfslinie</div>
+            <p class="text-xs text-amber-800">Das <strong>eingestrichene C</strong> liegt auf einer eigenen kurzen <strong>Hilfslinie</strong> direkt unter der 1. Notenlinie.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-indigo-50 border border-indigo-200">
+            <div class="text-xs font-bold uppercase text-indigo-700 mb-1">1. Linie (ganz unten)</div>
+            <div class="text-2xl font-extrabold text-indigo-900 mb-1">E = Erste Linie</div>
+            <p class="text-xs text-indigo-800">Auf der untersten Linie liegt immer das <strong>E</strong> (e').</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+            <div class="text-xs font-bold uppercase text-rose-700 mb-1">5. Linie (ganz oben)</div>
+            <div class="text-2xl font-extrabold text-rose-900 mb-1">F = Fünfte Linie</div>
+            <p class="text-xs text-rose-800">Auf der obersten Linie liegt immer das <strong>F</strong> (f'').</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div class="text-xs font-bold uppercase text-emerald-700 mb-1">Alle 4 Zwischenräume</div>
+            <div class="text-2xl font-extrabold text-emerald-900 mb-1">F – A – C – E</div>
+            <p class="text-xs text-emerald-800">Von unten nach oben ergeben die 4 Zwischenräume das englische Wort <strong>FACE</strong> (Gesicht).</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-center">
+          <svg viewBox="0 0 460 185" class="w-full max-w-lg">
+            <line x1="40" y1="35" x2="420" y2="35" stroke="#334155" stroke-width="2" />
+            <line x1="40" y1="55" x2="420" y2="55" stroke="#334155" stroke-width="2" />
+            <line x1="40" y1="75" x2="420" y2="75" stroke="#334155" stroke-width="2" />
+            <line x1="40" y1="95" x2="420" y2="95" stroke="#334155" stroke-width="2" />
+            <line x1="40" y1="115" x2="420" y2="115" stroke="#334155" stroke-width="2" />
+
+            <!-- C auf Hilfslinie -->
+            <line x1="65" y1="135" x2="105" y2="135" stroke="#334155" stroke-width="2.2" />
+            <ellipse cx="85" cy="135" rx="9" ry="6.5" transform="rotate(-15 85 135)" fill="#d97706" />
+            <text x="85" y="162" font-size="12" font-weight="bold" fill="#b45309" text-anchor="middle">C (Hilfslinie)</text>
+
+            <!-- E (1. Linie) -->
+            <ellipse cx="145" cy="115" rx="9" ry="6.5" transform="rotate(-15 145 115)" fill="#4f46e5" />
+            <text x="145" y="143" font-size="12" font-weight="bold" fill="#4f46e5" text-anchor="middle">E (1. Linie)</text>
+
+            <!-- F (5. Linie) -->
+            <ellipse cx="205" cy="35" rx="9" ry="6.5" transform="rotate(-15 205 35)" fill="#e11d48" />
+            <text x="205" y="21" font-size="12" font-weight="bold" fill="#e11d48" text-anchor="middle">F (5. Linie)</text>
+
+            <!-- F A C E in Zwischenräumen -->
+            <ellipse cx="275" cy="105" rx="8.5" ry="6.5" transform="rotate(-15 275 105)" fill="#059669" />
+            <text x="275" y="162" font-size="13" font-weight="bold" fill="#059669" text-anchor="middle">F</text>
+
+            <ellipse cx="310" cy="85" rx="8.5" ry="6.5" transform="rotate(-15 310 85)" fill="#059669" />
+            <text x="310" y="162" font-size="13" font-weight="bold" fill="#059669" text-anchor="middle">A</text>
+
+            <ellipse cx="345" cy="65" rx="8.5" ry="6.5" transform="rotate(-15 345 65)" fill="#059669" />
+            <text x="345" y="162" font-size="13" font-weight="bold" fill="#059669" text-anchor="middle">C</text>
+
+            <ellipse cx="380" cy="45" rx="8.5" ry="6.5" transform="rotate(-15 380 45)" fill="#059669" />
+            <text x="380" y="162" font-size="13" font-weight="bold" fill="#059669" text-anchor="middle">E</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- MODUL 3: PIANOTASTATUR -->
+      <div id="theory-mod-3" class="theory-module hidden bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-lg font-bold text-slate-900">Aufbau der Pianotastatur & wie man das C findet</h3>
+        <div class="grid md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+            <p>Auf einer Klaviatur wechseln sich <strong>weisse</strong> und <strong>schwarze Tasten</strong> ab. Die weissen Tasten sind die 7 Stammtöne: <strong>C – D – E – F – G – A – H</strong>.</p>
+            <div class="p-3.5 bg-indigo-50 border border-indigo-100 rounded-xl">
+              <p class="font-bold text-indigo-900 mb-1">So findest du sofort das C:</p>
+              <p class="text-indigo-800">Schau dir die schwarzen Tasten an: Sie sind immer abwechselnd in einer <strong>2er-Gruppe</strong> und einer <strong>3er-Gruppe</strong> angeordnet. Die weisse Taste <strong>unmittelbar links neben der 2er-Gruppe</strong> ist immer ein <strong>C</strong>!</p>
+            </div>
+            <p class="text-xs text-slate-500">Tipp: Links neben der 3er-Gruppe liegt immer ein <strong>F</strong>.</p>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <svg viewBox="0 0 320 155" class="w-full">
+              <rect x="20" y="25" width="40" height="105" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2" rx="4" />
+              <rect x="60" y="25" width="40" height="105" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4" />
+              <rect x="100" y="25" width="40" height="105" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4" />
+              <rect x="140" y="25" width="40" height="105" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4" />
+              <rect x="180" y="25" width="40" height="105" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4" />
+              <rect x="220" y="25" width="40" height="105" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4" />
+              <rect x="260" y="25" width="40" height="105" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4" />
+
+              <rect x="48" y="25" width="24" height="62" fill="#1e293b" rx="3" />
+              <rect x="88" y="25" width="24" height="62" fill="#1e293b" rx="3" />
+
+              <rect x="168" y="25" width="24" height="62" fill="#1e293b" rx="3" />
+              <rect x="208" y="25" width="24" height="62" fill="#1e293b" rx="3" />
+              <rect x="248" y="25" width="24" height="62" fill="#1e293b" rx="3" />
+
+              <path d="M 48 18 L 48 12 L 112 12 L 112 18" fill="none" stroke="#4f46e5" stroke-width="2" />
+              <text x="80" y="9" font-size="10" font-weight="bold" fill="#4f46e5" text-anchor="middle">2er-Gruppe</text>
+
+              <path d="M 168 18 L 168 12 L 272 12 L 272 18" fill="none" stroke="#64748b" stroke-width="2" />
+              <text x="220" y="9" font-size="10" font-weight="bold" fill="#64748b" text-anchor="middle">3er-Gruppe</text>
+
+              <text x="40" y="118" font-size="14" font-weight="bold" fill="#4f46e5" text-anchor="middle">C</text>
+              <text x="80" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">D</text>
+              <text x="120" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">E</text>
+              <text x="160" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">F</text>
+              <text x="200" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">G</text>
+              <text x="240" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">A</text>
+              <text x="280" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">H</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODUL 4: HALBTONSCHRITTE, KREUZ & B (ERWEITERT) -->
+      <div id="theory-mod-4" class="theory-module hidden bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Halbtonschritte & Versetzungszeichen: Kreuz (♯) und B (♭)</h3>
+          <p class="text-sm text-slate-700 mt-1 leading-relaxed">Der kleinste Abstand zwischen zwei benachbarten Tasten auf dem Klavier (z. B. von einer weissen Taste direkt zur nächstgelegenen schwarzen Taste) heisst <strong>Halbtonschritt</strong>. Steht ein ♯ oder ♭ direkt vor einer einzelnen Note im Takt, nennt man es <strong>Versetzungszeichen</strong> (es gilt nur für diesen einen Takt).</p>
+        </div>
+
+        <!-- REGELN KREUZ & B -->
+        <div class="grid md:grid-cols-2 gap-4">
+          <!-- KREUZ -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-lg">♯</span>
+              <span class="font-bold text-slate-900 text-base">Das Kreuz (♯) → Erhöhung</span>
+            </div>
+            <p class="text-xs text-slate-600">Ein Kreuz erhöht den Stammton um einen <strong>Halbtonschritt nach rechts</strong> (auf die schwarze Taste). An den Notennamen wird die Endung <strong>-is</strong> angehängt (z. B. F → <strong>Fis</strong>).</p>
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+              <svg viewBox="0 0 300 115" class="w-full">
+                <line x1="20" y1="25" x2="280" y2="25" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="40" x2="280" y2="40" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="55" x2="280" y2="55" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="70" x2="280" y2="70" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="85" x2="280" y2="85" stroke="#94a3b8" stroke-width="1.5" />
+
+                <ellipse cx="75" cy="77.5" rx="7" ry="5.5" transform="rotate(-15 75 77.5)" fill="#475569" />
+                <line x1="81.5" y1="77.5" x2="81.5" y2="48" stroke="#475569" stroke-width="1.8" />
+                <text x="75" y="105" font-size="12" font-weight="bold" fill="#475569" text-anchor="middle">F</text>
+
+                <line x1="105" y1="70" x2="165" y2="70" stroke="#4f46e5" stroke-width="2" />
+                <polygon points="165,66 173,70 165,74" fill="#4f46e5" />
+                <text x="137" y="63" font-size="10" font-weight="bold" fill="#4f46e5" text-anchor="middle">+½ Ton</text>
+
+                <text x="195" y="83" font-size="22" font-weight="bold" fill="#4f46e5">♯</text>
+                <ellipse cx="220" cy="77.5" rx="7" ry="5.5" transform="rotate(-15 220 77.5)" fill="#4f46e5" />
+                <line x1="226.5" y1="77.5" x2="226.5" y2="48" stroke="#4f46e5" stroke-width="1.8" />
+                <text x="215" y="105" font-size="12" font-weight="bold" fill="#4f46e5" text-anchor="middle">Fis</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- B -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-rose-600 text-white font-bold flex items-center justify-center text-lg">♭</span>
+              <span class="font-bold text-slate-900 text-base">Das B (♭) → Erniedrigung</span>
+            </div>
+            <p class="text-xs text-slate-600">Ein B erniedrigt den Stammton um einen <strong>Halbtonschritt nach links</strong>. Endung <strong>-es</strong> (z. B. D → <strong>Des</strong>). <span class="text-rose-700 font-semibold">Ausnahme: Aus H wird B!</span></p>
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+              <svg viewBox="0 0 300 115" class="w-full">
+                <line x1="20" y1="25" x2="280" y2="25" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="40" x2="280" y2="40" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="55" x2="280" y2="55" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="70" x2="280" y2="70" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="20" y1="85" x2="280" y2="85" stroke="#94a3b8" stroke-width="1.5" />
+
+                <ellipse cx="75" cy="55" rx="7" ry="5.5" transform="rotate(-15 75 55)" fill="#475569" />
+                <line x1="68.5" y1="55" x2="68.5" y2="83" stroke="#475569" stroke-width="1.8" />
+                <text x="75" y="105" font-size="12" font-weight="bold" fill="#475569" text-anchor="middle">H</text>
+
+                <line x1="105" y1="62" x2="165" y2="62" stroke="#e11d48" stroke-width="2" />
+                <polygon points="165,58 173,62 165,66" fill="#e11d48" />
+                <text x="137" y="55" font-size="10" font-weight="bold" fill="#e11d48" text-anchor="middle">-½ Ton</text>
+
+                <text x="195" y="60" font-size="22" font-weight="bold" fill="#e11d48">♭</text>
+                <ellipse cx="220" cy="55" rx="7" ry="5.5" transform="rotate(-15 220 55)" fill="#e11d48" />
+                <line x1="213.5" y1="55" x2="213.5" y2="83" stroke="#e11d48" stroke-width="1.8" />
+                <text x="215" y="105" font-size="12" font-weight="bold" fill="#e11d48" text-anchor="middle">B (CH)</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- GESAMTÜBERSICHT KLAVIATUR MIT ALLEN SCHWARZEN TASTEN -->
+        <div class="pt-4 border-t border-slate-200 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="font-bold text-slate-900 text-base">Gesamtübersicht: Alle 5 schwarzen Tasten & ihre Doppelnamen</h4>
+              <p class="text-xs text-slate-600">Jede schwarze Taste liegt zwischen zwei weissen Tasten und hat deshalb <strong>zwei Namen</strong> (einen mit <strong>♯</strong> von links erhöht, einen mit <strong>♭</strong> von rechts erniedrigt). Tippe auf eine Taste zum Hören!</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-center overflow-x-auto">
+            <svg viewBox="0 0 560 205" class="w-full max-w-2xl min-w-[460px]">
+              <!-- 7 Weisse Tasten -->
+              <rect x="20"  y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(60, 0.5)" />
+              <rect x="94"  y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(62, 0.5)" />
+              <rect x="168" y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(64, 0.5)" />
+              <rect x="242" y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(65, 0.5)" />
+              <rect x="316" y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(67, 0.5)" />
+              <rect x="390" y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(69, 0.5)" />
+              <rect x="464" y="20" width="74" height="165" fill="#ffffff" stroke="#334155" stroke-width="1.8" rx="5" class="cursor-pointer" onclick="playMidiTone(71, 0.5)" />
+
+              <!-- Weisse Tasten Beschriftung -->
+              <text x="57"  y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">C</text>
+              <text x="131" y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">D</text>
+              <text x="205" y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">E</text>
+              <text x="279" y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">F</text>
+              <text x="353" y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">G</text>
+              <text x="427" y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">A</text>
+              <text x="501" y="170" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">H</text>
+
+              <!-- Schwarze Taste 1: Cis / Des -->
+              <g class="cursor-pointer" onclick="playMidiTone(61, 0.5)">
+                <rect x="71" y="20" width="46" height="105" fill="#1e293b" stroke="#0f172a" stroke-width="1.5" rx="4" />
+                <text x="94" y="58" font-size="12" font-weight="bold" fill="#a5b4fc" text-anchor="middle">Cis</text>
+                <line x1="79" y1="68" x2="109" y2="68" stroke="#475569" stroke-width="1" />
+                <text x="94" y="86" font-size="12" font-weight="bold" fill="#fda4af" text-anchor="middle">Des</text>
+              </g>
+
+              <!-- Schwarze Taste 2: Dis / Es -->
+              <g class="cursor-pointer" onclick="playMidiTone(63, 0.5)">
+                <rect x="145" y="20" width="46" height="105" fill="#1e293b" stroke="#0f172a" stroke-width="1.5" rx="4" />
+                <text x="168" y="58" font-size="12" font-weight="bold" fill="#a5b4fc" text-anchor="middle">Dis</text>
+                <line x1="153" y1="68" x2="183" y2="68" stroke="#475569" stroke-width="1" />
+                <text x="168" y="86" font-size="12" font-weight="bold" fill="#fda4af" text-anchor="middle">Es</text>
+              </g>
+
+              <!-- Schwarze Taste 3: Fis / Ges -->
+              <g class="cursor-pointer" onclick="playMidiTone(66, 0.5)">
+                <rect x="293" y="20" width="46" height="105" fill="#1e293b" stroke="#0f172a" stroke-width="1.5" rx="4" />
+                <text x="316" y="58" font-size="12" font-weight="bold" fill="#a5b4fc" text-anchor="middle">Fis</text>
+                <line x1="301" y1="68" x2="331" y2="68" stroke="#475569" stroke-width="1" />
+                <text x="316" y="86" font-size="12" font-weight="bold" fill="#fda4af" text-anchor="middle">Ges</text>
+              </g>
+
+              <!-- Schwarze Taste 4: Gis / As -->
+              <g class="cursor-pointer" onclick="playMidiTone(68, 0.5)">
+                <rect x="367" y="20" width="46" height="105" fill="#1e293b" stroke="#0f172a" stroke-width="1.5" rx="4" />
+                <text x="390" y="58" font-size="12" font-weight="bold" fill="#a5b4fc" text-anchor="middle">Gis</text>
+                <line x1="375" y1="68" x2="405" y2="68" stroke="#475569" stroke-width="1" />
+                <text x="390" y="86" font-size="12" font-weight="bold" fill="#fda4af" text-anchor="middle">As</text>
+              </g>
+
+              <!-- Schwarze Taste 5: Ais / B -->
+              <g class="cursor-pointer" onclick="playMidiTone(70, 0.5)">
+                <rect x="441" y="20" width="46" height="105" fill="#1e293b" stroke="#0f172a" stroke-width="1.5" rx="4" />
+                <text x="464" y="58" font-size="12" font-weight="bold" fill="#a5b4fc" text-anchor="middle">Ais</text>
+                <line x1="449" y1="68" x2="479" y2="68" stroke="#475569" stroke-width="1" />
+                <text x="464" y="86" font-size="12" font-weight="bold" fill="#fda4af" text-anchor="middle">B</text>
+              </g>
+            </svg>
+          </div>
+          <p class="text-xs text-slate-500"><strong>Sonderfall E–F und H–C:</strong> Zwischen <strong>E und F</strong> sowie zwischen <strong>H und C</strong> liegt keine schwarze Taste – sie sind bereits von Natur aus nur einen Halbtonschritt voneinander entfernt.</p>
+        </div>
+
+        <!-- ALLE 5 SCHWARZEN TASTEN MIT JEWEILS BEIDEN NOTEN- & KLAVIATUR-BEISPIELEN -->
+        <div class="pt-4 border-t border-slate-200 space-y-4">
+          <h4 class="font-bold text-slate-900 text-base">Alle 5 schwarzen Tasten im Detail (Notenbild & Pianotaste zu jedem Namen)</h4>
+          <div id="enharmonic-cards-container" class="space-y-4">
+            <!-- Wird per JS gerendert -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: EINSTELLUNGEN ==================== -->
+    <section id="tab-settings" class="hidden flex-1 flex flex-col gap-5">
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Einstellungen</h2>
+            <p class="text-sm text-slate-500">Standard beim Öffnen: Violinschlüssel, A3–G5, ohne Versetzungszeichen.</p>
+          </div>
+          <button onclick="applySettingsAndReturn()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition">
+            Übernehmen
+          </button>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- NOTENSCHLÜSSEL -->
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-slate-800">Notenschlüssel</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" id="set-clef-treble" onclick="selectClef('treble')" class="clef-opt py-2.5 px-3 rounded-xl border text-sm font-semibold transition">Violinschlüssel</button>
+              <button type="button" id="set-clef-bass" onclick="selectClef('bass')" class="clef-opt py-2.5 px-3 rounded-xl border text-sm font-semibold transition">Bassschlüssel</button>
+              <button type="button" id="set-clef-both" onclick="selectClef('both')" class="clef-opt py-2.5 px-3 rounded-xl border text-sm font-semibold transition">Gemischt</button>
+            </div>
+          </div>
+
+          <!-- VERSETZUNGSZEICHEN -->
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-slate-800">Versetzungszeichen</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" id="set-acc-none" onclick="selectAccidental('none')" class="acc-opt py-2.5 px-3 rounded-xl border text-sm font-semibold transition">Keine (Stammtöne)</button>
+              <button type="button" id="set-acc-sharp" onclick="selectAccidental('sharp')" class="acc-opt py-2.5 px-3 rounded-xl border text-sm font-semibold transition">Mit Kreuz (♯)</button>
+              <button type="button" id="set-acc-both" onclick="selectAccidental('both')" class="acc-opt py-2.5 px-3 rounded-xl border text-sm font-semibold transition">Kreuz (♯) & B (♭)</button>
+            </div>
+          </div>
+
+          <!-- TONUMFANG VIOLINSCHLÜSSEL -->
+          <div class="space-y-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <label class="block text-sm font-bold text-slate-800">Tonumfang Violinschlüssel (Standard: A3 – G5)</label>
+            <div class="grid grid-cols-2 gap-3 mt-2">
+              <div>
+                <span class="text-xs text-slate-500 block mb-1">Tiefste Note</span>
+                <select id="range-treble-min" class="w-full rounded-lg border-slate-300 text-sm py-2 px-2.5 bg-white border"></select>
+              </div>
+              <div>
+                <span class="text-xs text-slate-500 block mb-1">Höchste Note</span>
+                <select id="range-treble-max" class="w-full rounded-lg border-slate-300 text-sm py-2 px-2.5 bg-white border"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- TONUMFANG BASSSCHLÜSSEL -->
+          <div class="space-y-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <label class="block text-sm font-bold text-slate-800">Tonumfang Bassschlüssel</label>
+            <div class="grid grid-cols-2 gap-3 mt-2">
+              <div>
+                <span class="text-xs text-slate-500 block mb-1">Tiefste Note</span>
+                <select id="range-bass-min" class="w-full rounded-lg border-slate-300 text-sm py-2 px-2.5 bg-white border"></select>
+              </div>
+              <div>
+                <span class="text-xs text-slate-500 block mb-1">Höchste Note</span>
+                <select id="range-bass-max" class="w-full rounded-lg border-slate-300 text-sm py-2 px-2.5 bg-white border"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- AUDIO -->
+          <div class="space-y-2 md:col-span-2">
+            <label class="block text-sm font-bold text-slate-800">Klangausgabe (Synthesizer)</label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 cursor-pointer bg-slate-50">
+              <input type="checkbox" id="set-sound-enabled" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" />
+              <span class="text-sm text-slate-700">Ton bei Anzeige und Tastendruck abspielen</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: AUSWERTUNG -->
+  <div id="result-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-pop text-center space-y-5">
+      <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-3xl mx-auto">
+        🏆
+      </div>
+      <div>
+        <span id="modal-reason" class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Übung abgeschlossen</span>
+        <h3 class="text-2xl font-extrabold text-slate-900 mt-2">Auswertung</h3>
+        <p class="text-xs text-slate-500 mt-1">Formel: Korrekte Antworten × 10 × Genauigkeit</p>
+      </div>
+
+      <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+        <span class="text-xs font-bold uppercase text-indigo-700 block">Gesamtpunktzahl</span>
+        <span id="res-final-score" class="text-4xl font-black text-indigo-700">0</span>
+        <span class="text-sm font-bold text-indigo-600"> Punkte</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <div>
+          <span class="text-xs text-slate-500 block">Korrekt</span>
+          <span id="res-correct" class="text-lg font-bold text-emerald-600">0</span>
+        </div>
+        <div>
+          <span class="text-xs text-slate-500 block">Genauigkeit</span>
+          <span id="res-accuracy" class="text-lg font-bold text-slate-800">100%</span>
+        </div>
+        <div>
+          <span class="text-xs text-slate-500 block">Dauer</span>
+          <span id="res-time" class="text-lg font-bold text-slate-800">00:00</span>
+        </div>
+      </div>
+
+      <button onclick="resetToStartScreen()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition">
+        Zurück zum Startbildschirm
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== SCHRIFTGRÖSSE ANPASSEN ====================
+    let currentFontSizePx = 16;
+    function changeFontSize(delta) {
+      currentFontSizePx = Math.min(22, Math.max(13, currentFontSizePx + delta));
+      document.documentElement.style.fontSize = `${currentFontSizePx}px`;
+    }
+
+    // ==================== MUSIK-DATENMODELL (SCHWEIZER STANDARD) ====================
+    const TREBLE_SCALE = [
+      { id: 'G3', step: -4, label: 'g (G3)', base: 'G', midi: 55 },
+      { id: 'A3', step: -3, label: 'a (A3)', base: 'A', midi: 57 },
+      { id: 'H3', step: -2, label: 'h (H3)', base: 'H', midi: 59 },
+      { id: 'C4', step: -1, label: "c' (C4 - Schloss-C)", base: 'C', midi: 60 },
+      { id: 'D4', step: 0,  label: "d' (D4)", base: 'D', midi: 62 },
+      { id: 'E4', step: 1,  label: "e' (E4 - 1. Linie)", base: 'E', midi: 64 },
+      { id: 'F4', step: 2,  label: "f' (F4)", base: 'F', midi: 65 },
+      { id: 'G4', step: 3,  label: "g' (G4)", base: 'G', midi: 67 },
+      { id: 'A4', step: 4,  label: "a' (A4 - Kammerton)", base: 'A', midi: 69 },
+      { id: 'H4', step: 5,  label: "h' (H4)", base: 'H', midi: 71 },
+      { id: 'C5', step: 6,  label: "c'' (C5)", base: 'C', midi: 72 },
+      { id: 'D5', step: 7,  label: "d'' (D5)", base: 'D', midi: 74 },
+      { id: 'E5', step: 8,  label: "e'' (E5)", base: 'E', midi: 76 },
+      { id: 'F5', step: 9,  label: "f'' (F5 - 5. Linie)", base: 'F', midi: 77 },
+      { id: 'G5', step: 10, label: "g'' (G5)", base: 'G', midi: 79 },
+      { id: 'A5', step: 11, label: "a'' (A5)", base: 'A', midi: 81 },
+      { id: 'H5', step: 12, label: "h'' (H5)", base: 'H', midi: 83 },
+      { id: 'C6', step: 13, label: "c''' (C6)", base: 'C', midi: 84 }
+    ];
+
+    const BASS_SCALE = [
+      { id: 'E2', step: -2, label: 'E (E2)', base: 'E', midi: 40 },
+      { id: 'F2', step: -1, label: 'F (F2)', base: 'F', midi: 41 },
+      { id: 'G2', step: 0,  label: 'G (G2)', base: 'G', midi: 43 },
+      { id: 'A2', step: 1,  label: 'A (A2)', base: 'A', midi: 45 },
+      { id: 'H2', step: 2,  label: 'H (H2)', base: 'H', midi: 47 },
+      { id: 'C3', step: 3,  label: 'c (C3)', base: 'C', midi: 48 },
+      { id: 'D3', step: 4,  label: 'd (D3)', base: 'D', midi: 50 },
+      { id: 'E3', step: 5,  label: 'e (E3)', base: 'E', midi: 52 },
+      { id: 'F3', step: 6,  label: 'f (F3 - Bass-F)', base: 'F', midi: 53 },
+      { id: 'G3', step: 7,  label: 'g (G3)', base: 'G', midi: 55 },
+      { id: 'A3', step: 8,  label: 'a (A3)', base: 'A', midi: 57 },
+      { id: 'H3', step: 9,  label: 'h (H3)', base: 'H', midi: 59 },
+      { id: 'C4', step: 10, label: "c' (C4 - Schloss-C)", base: 'C', midi: 60 },
+      { id: 'D4', step: 11, label: "d' (D4)", base: 'D', midi: 62 },
+      { id: 'E4', step: 12, label: "e' (E4)", base: 'E', midi: 64 }
+    ];
+
+    const SHARP_MAP = {
+      'C': { name: 'Cis', group: 'Cis/Des', offset: 1 },
+      'D': { name: 'Dis', group: 'Dis/Es', offset: 1 },
+      'E': { name: 'Eis', group: 'F', offset: 1 },
+      'F': { name: 'Fis', group: 'Fis/Ges', offset: 1 },
+      'G': { name: 'Gis', group: 'Gis/As', offset: 1 },
+      'A': { name: 'Ais', group: 'Ais/B', offset: 1 },
+      'H': { name: 'His', group: 'C', offset: 1 }
+    };
+
+    const FLAT_MAP = {
+      'C': { name: 'Ces', group: 'H', offset: -1 },
+      'D': { name: 'Des', group: 'Cis/Des', offset: -1 },
+      'E': { name: 'Es',  group: 'Dis/Es', offset: -1 },
+      'F': { name: 'Fes', group: 'E', offset: -1 },
+      'G': { name: 'Ges', group: 'Fis/Ges', offset: -1 },
+      'A': { name: 'As',  group: 'Gis/As', offset: -1 },
+      'H': { name: 'B',   group: 'Ais/B', offset: -1 }
+    };
+
+    // ==================== FIXE STANDARDWERTE BEIM LADEN ====================
+    let config = {
+      clef: 'treble',          // Standard: Violinschlüssel
+      accidental: 'none',      // Standard: Ohne Versetzungszeichen
+      trebleMin: 'A3',         // Standard: A3
+      trebleMax: 'G5',         // Standard: G5
+      bassMin: 'G2',
+      bassMax: 'H3',
+      duration: 60,            // Standard: 1 Minute
+      inputMode: 'piano',      // Standard: Pianotasten
+      soundEnabled: true
+    };
+
+    let state = {
+      isRunning: false,
+      currentNote: null,
+      lastNoteKey: null,
+      correctCount: 0,
+      totalAttempts: 0,
+      elapsedSeconds: 0,
+      remainingSeconds: 60,
+      timerInterval: null,
+      locked: false
+    };
+
+    // ==================== WEB AUDIO SYNTHESIZER ====================
+    let audioCtx = null;
+
+    function playMidiTone(midiNumber, duration = 0.45) {
+      if (!config.soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+        const freq = 440 * Math.pow(2, (midiNumber - 69) / 12);
+
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'triangle';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(freq, now);
+        osc2.frequency.setValueAtTime(freq * 2, now);
+
+        const gain2 = audioCtx.createGain();
+        gain2.gain.setValueAtTime(0.15, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.28, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc1.connect(gain);
+        osc2.connect(gain2);
+        gain2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + duration);
+        osc2.stop(now + duration);
+      } catch (e) {}
+    }
+
+    function playCurrentNoteSound() {
+      if (state.currentNote) {
+        playMidiTone(state.currentNote.midi, 0.55);
+      }
+    }
+
+    // ==================== NAVIGATION & STARTBILDSCHIRM ====================
+    function switchTab(tabName) {
+      ['train', 'theory', 'settings'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`nav-${t}`);
+        btn.classList.remove('bg-white', 'text-indigo-700', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-${tabName}`);
+      activeBtn.classList.add('bg-white', 'text-indigo-700', 'shadow-sm');
+      activeBtn.classList.remove('text-slate-600');
+
+      if (tabName === 'train' && !state.isRunning) {
+        updateStartSummary();
+      }
+    }
+
+    function showTheoryModule(num) {
+      document.querySelectorAll('.theory-module').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`theory-mod-${num}`).classList.remove('hidden');
+
+      document.querySelectorAll('.th-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const active = document.getElementById(`th-btn-${num}`);
+      active.classList.add('bg-indigo-600', 'text-white');
+      active.classList.remove('bg-slate-100', 'text-slate-700');
+    }
+
+    function syncStartOptions() {
+      config.duration = parseInt(document.getElementById('start-duration').value, 10);
+    }
+
+    function setInputMode(mode) {
+      config.inputMode = mode;
+      ['piano', 'buttons', 'both'].forEach(m => {
+        const btn = document.getElementById(`start-input-${m}`);
+        if (m === mode) {
+          btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+          btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+        } else {
+          btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+          btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+        }
+      });
+    }
+
+    function updateStartSummary() {
+      const clefLabel = config.clef === 'treble' ? 'Violinschlüssel' : config.clef === 'bass' ? 'Bassschlüssel' : 'Gemischt';
+      const rangeLabel = config.clef === 'bass' ? `${config.bassMin} – ${config.bassMax}` : `${config.trebleMin} – ${config.trebleMax}`;
+      const accLabel = config.accidental === 'none' ? 'Ohne Versetzungszeichen' : config.accidental === 'sharp' ? 'Mit Kreuz (♯)' : 'Kreuz (♯) & B (♭)';
+      document.getElementById('start-summary-text').textContent = `${clefLabel} · ${rangeLabel} · ${accLabel}`;
+    }
+
+    // ==================== NOTENGENERATOR ====================
+    function generateNextNote() {
+      let chosenClef = config.clef;
+      if (chosenClef === 'both') {
+        chosenClef = Math.random() < 0.5 ? 'treble' : 'bass';
+      }
+
+      const scale = chosenClef === 'treble' ? TREBLE_SCALE : BASS_SCALE;
+      const minId = chosenClef === 'treble' ? config.trebleMin : config.bassMin;
+      const maxId = chosenClef === 'treble' ? config.trebleMax : config.bassMax;
+
+      let minIdx = scale.findIndex(n => n.id === minId);
+      let maxIdx = scale.findIndex(n => n.id === maxId);
+      if (minIdx === -1) minIdx = 0;
+      if (maxIdx === -1) maxIdx = scale.length - 1;
+      if (minIdx > maxIdx) [minIdx, maxIdx] = [maxIdx, minIdx];
+
+      const pool = scale.slice(minIdx, maxIdx + 1);
+      let candidate = null;
+      let attempts = 0;
+
+      do {
+        const baseObj = pool[Math.floor(Math.random() * pool.length)];
+        let accType = 'none';
+
+        if (config.accidental === 'sharp') {
+          accType = Math.random() < 0.55 ? 'sharp' : 'none';
+        } else if (config.accidental === 'both') {
+          const r = Math.random();
+          if (r < 0.35) accType = 'sharp';
+          else if (r < 0.70) accType = 'flat';
+          else accType = 'none';
+        }
+
+        let displayName = baseObj.base;
+        let answerGroup = baseObj.base;
+        let midi = baseObj.midi;
+
+        if (accType === 'sharp') {
+          const mapped = SHARP_MAP[baseObj.base];
+          displayName = mapped.name;
+          answerGroup = mapped.group;
+          midi += mapped.offset;
+        } else if (accType === 'flat') {
+          const mapped = FLAT_MAP[baseObj.base];
+          displayName = mapped.name;
+          answerGroup = mapped.group;
+          midi += mapped.offset;
+        }
+
+        const key = `${chosenClef}-${baseObj.id}-${accType}`;
+        candidate = {
+          clef: chosenClef,
+          step: baseObj.step,
+          base: baseObj.base,
+          accType,
+          displayName,
+          answerGroup,
+          midi,
+          key
+        };
+        attempts++;
+      } while (candidate.key === state.lastNoteKey && attempts < 10);
+
+      state.currentNote = candidate;
+      state.lastNoteKey = candidate.key;
+
+      document.getElementById('badge-clef').textContent =
+        chosenClef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
+
+      renderStaff(candidate);
+      setTimeout(() => playCurrentNoteSound(), 120);
+    }
+
+    // ==================== SVG NOTENSYSTEM RENDERER ====================
+    function renderStaff(note) {
+      const svg = document.getElementById('staff-svg');
+      const lineSpacing = 18;
+      const topLineY = 55;
+      const bottomLineY = topLineY + 4 * lineSpacing; // 127
+
+      let html = '';
+
+      for (let i = 0; i < 5; i++) {
+        const y = topLineY + i * lineSpacing;
+        html += `<line x1="40" y1="${y}" x2="320" y2="${y}" stroke="#334155" stroke-width="1.8" />`;
+      }
+
+      if (note.clef === 'treble') {
+        html += `<text x="52" y="121" font-size="96" font-family="serif" fill="#0f172a">𝄞</text>`;
+      } else {
+        html += `<text x="54" y="109" font-size="76" font-family="serif" fill="#0f172a">𝄢</text>`;
+      }
+
+      const noteX = 205;
+      const noteY = bottomLineY - (note.step - 1) * (lineSpacing / 2);
+
+      if (note.step <= -1) {
+        for (let s = -1; s >= note.step; s -= 2) {
+          const ly = bottomLineY - (s - 1) * (lineSpacing / 2);
+          html += `<line x1="${noteX - 20}" y1="${ly}" x2="${noteX + 20}" y2="${ly}" stroke="#0f172a" stroke-width="2" />`;
+        }
+      }
+      if (note.step >= 11) {
+        for (let s = 11; s <= note.step; s += 2) {
+          const ly = bottomLineY - (s - 1) * (lineSpacing / 2);
+          html += `<line x1="${noteX - 20}" y1="${ly}" x2="${noteX + 20}" y2="${ly}" stroke="#0f172a" stroke-width="2" />`;
+        }
+      }
+
+      if (note.accType === 'sharp') {
+        html += `<text x="${noteX - 34}" y="${noteY + 9}" font-size="28" font-weight="bold" fill="#0f172a">♯</text>`;
+      } else if (note.accType === 'flat') {
+        html += `<text x="${noteX - 32}" y="${noteY + 7}" font-size="28" font-weight="bold" fill="#0f172a">♭</text>`;
+      }
+
+      html += `<ellipse cx="${noteX}" cy="${noteY}" rx="11" ry="8" transform="rotate(-16 ${noteX} ${noteY})" fill="#0f172a" />`;
+
+      if (note.step < 5) {
+        html += `<line x1="${noteX + 9.5}" y1="${noteY - 2}" x2="${noteX + 9.5}" y2="${noteY - 46}" stroke="#0f172a" stroke-width="2.2" />`;
+      } else {
+        html += `<line x1="${noteX - 9.5}" y1="${noteY + 2}" x2="${noteX - 9.5}" y2="${noteY + 46}" stroke="#0f172a" stroke-width="2.2" />`;
+      }
+
+      svg.innerHTML = html;
+    }
+
+    // ==================== THEORIE: NACHSCHLAGE-TONLEITERN ====================
+    function renderReferenceScales() {
+      drawReferenceScale('ref-treble-svg', 'treble', TREBLE_SCALE.filter(n => n.step >= -3 && n.step <= 10));
+      drawReferenceScale('ref-bass-svg', 'bass', BASS_SCALE.filter(n => n.step >= 3 && n.step <= 9));
+    }
+
+    function drawReferenceScale(svgId, clef, notes) {
+      const svg = document.getElementById(svgId);
+      const lineSpacing = 15;
+      const topLineY = 38;
+      const bottomLineY = topLineY + 4 * lineSpacing; // 98
+      const startX = 95;
+      const stepX = (720 - startX) / notes.length;
+
+      let html = '';
+
+      for (let i = 0; i < 5; i++) {
+        const y = topLineY + i * lineSpacing;
+        html += `<line x1="25" y1="${y}" x2="735" y2="${y}" stroke="#475569" stroke-width="1.5" />`;
+      }
+
+      if (clef === 'treble') {
+        html += `<text x="32" y="93" font-size="78" font-family="serif" fill="#0f172a">𝄞</text>`;
+      } else {
+        html += `<text x="34" y="84" font-size="62" font-family="serif" fill="#0f172a">𝄢</text>`;
+      }
+
+      notes.forEach((n, idx) => {
+        const cx = startX + idx * stepX + 18;
+        const cy = bottomLineY - (n.step - 1) * (lineSpacing / 2);
+
+        html += `<g class="cursor-pointer" onclick="playMidiTone(${n.midi}, 0.5)">`;
+        html += `<rect x="${cx - 18}" y="12" width="36" height="150" fill="transparent" />`;
+
+        if (n.step <= -1) {
+          for (let s = -1; s >= n.step; s -= 2) {
+            const ly = bottomLineY - (s - 1) * (lineSpacing / 2);
+            html += `<line x1="${cx - 14}" y1="${ly}" x2="${cx + 14}" y2="${ly}" stroke="#0f172a" stroke-width="1.6" />`;
+          }
+        }
+        if (n.step >= 11) {
+          for (let s = 11; s <= n.step; s += 2) {
+            const ly = bottomLineY - (s - 1) * (lineSpacing / 2);
+            html += `<line x1="${cx - 14}" y1="${ly}" x2="${cx + 14}" y2="${ly}" stroke="#0f172a" stroke-width="1.6" />`;
+          }
+        }
+
+        html += `<ellipse cx="${cx}" cy="${cy}" rx="8.5" ry="6" transform="rotate(-15 ${cx} ${cy})" fill="#4f46e5" />`;
+
+        if (n.step < 5) {
+          html += `<line x1="${cx + 7.5}" y1="${cy - 1}" x2="${cx + 7.5}" y2="${cy - 34}" stroke="#4f46e5" stroke-width="1.8" />`;
+        } else {
+          html += `<line x1="${cx - 7.5}" y1="${cy + 1}" x2="${cx - 7.5}" y2="${cy + 34}" stroke="#4f46e5" stroke-width="1.8" />`;
+        }
+
+        html += `<text x="${cx}" y="142" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">${n.base}</text>`;
+        html += `<text x="${cx}" y="157" font-size="10" fill="#64748b" text-anchor="middle">${n.id}</text>`;
+        html += `</g>`;
+      });
+
+      svg.innerHTML = html;
+    }
+
+    // ==================== MODUL 4: ALLE 5 SCHWARZEN TASTEN MIT NOTEN & MINI-PIANO ====================
+    function buildMiniPianoSVG(highlightBlackIdx, accentColor, baseLabelLeft, baseLabelRight, midi) {
+      // 7 weisse Tasten (Breite je 20px -> 140px gesamt)
+      const whiteLabels = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+      const blackPositions = [13, 33, 73, 93, 113]; // x-Start der 5 schwarzen Tasten
+      let svg = `<svg viewBox="0 0 150 76" class="w-36 h-auto cursor-pointer" onclick="playMidiTone(${midi}, 0.5)">`;
+
+      whiteLabels.forEach((lbl, idx) => {
+        const x = 5 + idx * 20;
+        const isBaseLeft = (lbl === baseLabelLeft);
+        const isBaseRight = (lbl === baseLabelRight);
+        const fill = (isBaseLeft || isBaseRight) ? '#f1f5f9' : '#ffffff';
+        svg += `<rect x="${x}" y="4" width="20" height="66" fill="${fill}" stroke="#334155" stroke-width="1.2" rx="2" />`;
+        svg += `<text x="${x + 10}" y="63" font-size="8.5" font-weight="bold" fill="#475569" text-anchor="middle">${lbl}</text>`;
+      });
+
+      blackPositions.forEach((bx, bIdx) => {
+        const x = 5 + bx;
+        const isTarget = (bIdx === highlightBlackIdx);
+        const fill = isTarget ? accentColor : '#1e293b';
+        svg += `<rect x="${x}" y="4" width="13" height="40" fill="${fill}" stroke="#0f172a" stroke-width="1" rx="2" />`;
+      });
+
+      svg += `</svg>`;
+      return svg;
+    }
+
+    function buildMiniStaffSVG(step, accType, color, label, midi) {
+      const lineSpacing = 10;
+      const topLineY = 18;
+      const bottomLineY = topLineY + 4 * lineSpacing; // 58
+      const noteX = 68;
+      const noteY = bottomLineY - (step - 1) * (lineSpacing / 2);
+
+      let svg = `<svg viewBox="0 0 120 82" class="w-32 h-auto cursor-pointer" onclick="playMidiTone(${midi}, 0.5)">`;
+      for (let i = 0; i < 5; i++) {
+        const y = topLineY + i * lineSpacing;
+        svg += `<line x1="12" y1="${y}" x2="108" y2="${y}" stroke="#64748b" stroke-width="1.2" />`;
+      }
+      svg += `<text x="15" y="54" font-size="48" font-family="serif" fill="#334155">𝄞</text>`;
+
+      if (step <= -1) {
+        const ly = bottomLineY - (-1 - 1) * (lineSpacing / 2);
+        svg += `<line x1="${noteX - 12}" y1="${ly}" x2="${noteX + 12}" y2="${ly}" stroke="#0f172a" stroke-width="1.4" />`;
+      }
+
+      const accSymbol = accType === 'sharp' ? '♯' : '♭';
+      svg += `<text x="${noteX - 21}" y="${noteY + 5}" font-size="18" font-weight="bold" fill="${color}">${accSymbol}</text>`;
+      svg += `<ellipse cx="${noteX}" cy="${noteY}" rx="6" ry="4.5" transform="rotate(-15 ${noteX} ${noteY})" fill="${color}" />`;
+
+      if (step < 5) {
+        svg += `<line x1="${noteX + 5.2}" y1="${noteY - 1}" x2="${noteX + 5.2}" y2="${noteY - 24}" stroke="${color}" stroke-width="1.5" />`;
+      } else {
+        svg += `<line x1="${noteX - 5.2}" y1="${noteY + 1}" x2="${noteX - 5.2}" y2="${noteY + 24}" stroke="${color}" stroke-width="1.5" />`;
+      }
+
+      svg += `<text x="60" y="77" font-size="11" font-weight="bold" fill="${color}" text-anchor="middle">${label}</text>`;
+      svg += `</svg>`;
+      return svg;
+    }
+
+    function renderEnharmonicCards() {
+      const container = document.getElementById('enharmonic-cards-container');
+      const blackKeysData = [
+        {
+          title: '1. Schwarze Taste zwischen C und D',
+          blackIdx: 0,
+          midi: 61,
+          sharp: { name: 'Cis', desc: 'C + ♯ (C um ½ Ton erhöht)', step: -1, base: 'C' },
+          flat:  { name: 'Des', desc: 'D + ♭ (D um ½ Ton erniedrigt)', step: 0, base: 'D' }
+        },
+        {
+          title: '2. Schwarze Taste zwischen D und E',
+          blackIdx: 1,
+          midi: 63,
+          sharp: { name: 'Dis', desc: 'D + ♯ (D um ½ Ton erhöht)', step: 0, base: 'D' },
+          flat:  { name: 'Es',  desc: 'E + ♭ (E um ½ Ton erniedrigt)', step: 1, base: 'E' }
+        },
+        {
+          title: '3. Schwarze Taste zwischen F und G',
+          blackIdx: 2,
+          midi: 66,
+          sharp: { name: 'Fis', desc: 'F + ♯ (F um ½ Ton erhöht)', step: 2, base: 'F' },
+          flat:  { name: 'Ges', desc: 'G + ♭ (G um ½ Ton erniedrigt)', step: 3, base: 'G' }
+        },
+        {
+          title: '4. Schwarze Taste zwischen G und A',
+          blackIdx: 3,
+          midi: 68,
+          sharp: { name: 'Gis', desc: 'G + ♯ (G um ½ Ton erhöht)', step: 3, base: 'G' },
+          flat:  { name: 'As',  desc: 'A + ♭ (A um ½ Ton erniedrigt)', step: 4, base: 'A' }
+        },
+        {
+          title: '5. Schwarze Taste zwischen A und H',
+          blackIdx: 4,
+          midi: 70,
+          sharp: { name: 'Ais', desc: 'A + ♯ (A um ½ Ton erhöht)', step: 4, base: 'A' },
+          flat:  { name: 'B (Schweiz)', desc: 'H + ♭ (H um ½ Ton erniedrigt → heisst B!)', step: 5, base: 'H' }
+        }
+      ];
+
+      let html = '';
+      blackKeysData.forEach(item => {
+        html += `
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 text-sm">${item.title}</span>
+              <button type="button" onclick="playMidiTone(${item.midi}, 0.5)" class="text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 px-2.5 py-1 rounded-lg transition">
+                🔊 Ton anhören
+              </button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-3">
+              <!-- LINKER NAME (MIT KREUZ) -->
+              <div class="bg-white p-3 rounded-xl border border-indigo-100 flex items-center justify-between gap-2">
+                <div class="space-y-1">
+                  <span class="inline-block px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold">${item.sharp.name}</span>
+                  <p class="text-xs text-slate-600">${item.sharp.desc}</p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  ${buildMiniStaffSVG(item.sharp.step, 'sharp', '#4f46e5', item.sharp.name, item.midi)}
+                  ${buildMiniPianoSVG(item.blackIdx, '#4f46e5', item.sharp.base, '', item.midi)}
+                </div>
+              </div>
+
+              <!-- RECHTER NAME (MIT B) -->
+              <div class="bg-white p-3 rounded-xl border border-rose-100 flex items-center justify-between gap-2">
+                <div class="space-y-1">
+                  <span class="inline-block px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-xs font-bold">${item.flat.name}</span>
+                  <p class="text-xs text-slate-600">${item.flat.desc}</p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  ${buildMiniStaffSVG(item.flat.step, 'flat', '#e11d48', item.flat.name, item.midi)}
+                  ${buildMiniPianoSVG(item.blackIdx, '#e11d48', '', item.flat.base, item.midi)}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // ==================== KLAVIATUR RENDERER ====================
+    function renderPiano() {
+      const wrapper = document.getElementById('piano-wrapper');
+      const showLabels = document.getElementById('toggle-piano-labels').checked;
+
+      const whiteNotes = [
+        { name: 'C', midi: 60 }, { name: 'D', midi: 62 }, { name: 'E', midi: 64 },
+        { name: 'F', midi: 65 }, { name: 'G', midi: 67 }, { name: 'A', midi: 69 },
+        { name: 'H', midi: 71 },
+        { name: 'C', midi: 72 }, { name: 'D', midi: 74 }, { name: 'E', midi: 76 },
+        { name: 'F', midi: 77 }, { name: 'G', midi: 79 }, { name: 'A', midi: 81 },
+        { name: 'H', midi: 83 }
+      ];
+
+      const blackNotes = [
+        { group: 'Cis/Des', label: 'Cis/Des', posAfterWhite: 0, midi: 61 },
+        { group: 'Dis/Es',  label: 'Dis/Es',  posAfterWhite: 1, midi: 63 },
+        { group: 'Fis/Ges', label: 'Fis/Ges', posAfterWhite: 3, midi: 66 },
+        { group: 'Gis/As',  label: 'Gis/As',  posAfterWhite: 4, midi: 68 },
+        { group: 'Ais/B',   label: 'Ais/B',   posAfterWhite: 5, midi: 70 },
+        { group: 'Cis/Des', label: 'Cis/Des', posAfterWhite: 7, midi: 73 },
+        { group: 'Dis/Es',  label: 'Dis/Es',  posAfterWhite: 8, midi: 75 },
+        { group: 'Fis/Ges', label: 'Fis/Ges', posAfterWhite: 10, midi: 78 },
+        { group: 'Gis/As',  label: 'Gis/As',  posAfterWhite: 11, midi: 80 },
+        { group: 'Ais/B',   label: 'Ais/B',   posAfterWhite: 12, midi: 82 }
+      ];
+
+      const whiteWidthPct = 100 / 14;
+      let html = `<div class="relative w-full h-full flex">`;
+
+      whiteNotes.forEach((wn) => {
+        html += `
+          <button
+            type="button"
+            onclick="onPianoKeyClick('${wn.name}', ${wn.midi})"
+            class="piano-white flex-1 h-full bg-white border-r border-slate-300 last:border-r-0 rounded-b-lg flex flex-col justify-end items-center pb-2.5 focus:outline-none">
+            ${showLabels ? `<span class="text-xs sm:text-sm font-bold text-slate-600">${wn.name}</span>` : ''}
+          </button>
+        `;
+      });
+
+      blackNotes.forEach((bn) => {
+        const leftPct = (bn.posAfterWhite + 1) * whiteWidthPct - (whiteWidthPct * 0.34);
+        const widthPct = whiteWidthPct * 0.68;
+        html += `
+          <button
+            type="button"
+            onclick="onPianoKeyClick('${bn.group}', ${bn.midi})"
+            style="left: ${leftPct}%; width: ${widthPct}%;"
+            class="piano-black absolute top-0 h-[60%] bg-slate-900 border border-slate-700 rounded-b-md z-10 flex flex-col justify-end items-center pb-1.5 shadow-md focus:outline-none">
+            ${showLabels ? `<span class="text-[9px] leading-tight text-center font-semibold text-slate-200 px-0.5">${bn.label.replace('/', '/\n')}</span>` : ''}
+          </button>
+        `;
+      });
+
+      html += `</div>`;
+      wrapper.innerHTML = html;
+    }
+
+    function onPianoKeyClick(noteGroup, midi) {
+      playMidiTone(midi, 0.35);
+      handleAnswer(noteGroup, true);
+    }
+
+    // ==================== ANTWORTPRÜFUNG & PUNKTEBERECHNUNG ====================
+    function calculateScore(correct, total) {
+      if (total === 0) return 0;
+      const accuracyRatio = correct / total;
+      return Math.round(correct * 10 * accuracyRatio);
+    }
+
+    function handleAnswer(selectedGroup, fromPiano = false) {
+      if (!state.isRunning || state.locked || !state.currentNote) return;
+
+      if (!fromPiano) {
+        playCurrentNoteSound();
+      }
+
+      state.totalAttempts++;
+      const isCorrect = (selectedGroup === state.currentNote.answerGroup);
+      const feedbackEl = document.getElementById('feedback-banner');
+      const cardEl = document.getElementById('staff-card');
+
+      if (isCorrect) {
+        state.correctCount++;
+        state.locked = true;
+
+        feedbackEl.innerHTML = `<span class="text-emerald-600">✓ Richtig: ${state.currentNote.displayName}</span>`;
+        cardEl.classList.add('border-emerald-400', 'bg-emerald-50/30');
+        updateStatsUI();
+
+        setTimeout(() => {
+          feedbackEl.innerHTML = '';
+          cardEl.classList.remove('border-emerald-400', 'bg-emerald-50/30');
+          state.locked = false;
+          if (state.isRunning) {
+            generateNextNote();
+          }
+        }, 420);
+      } else {
+        feedbackEl.innerHTML = `<span class="text-rose-600">✗ Falsch – richtig ist ${state.currentNote.displayName}</span>`;
+        cardEl.classList.remove('animate-shake');
+        void cardEl.offsetWidth;
+        cardEl.classList.add('animate-shake', 'border-rose-400');
+        updateStatsUI();
+
+        setTimeout(() => {
+          cardEl.classList.remove('border-rose-400');
+        }, 550);
+      }
+    }
+
+    function updateStatsUI() {
+      const acc = state.totalAttempts === 0
+        ? 100
+        : Math.round((state.correctCount / state.totalAttempts) * 100);
+      const score = calculateScore(state.correctCount, state.totalAttempts);
+
+      document.getElementById('stat-score').textContent = score;
+      document.getElementById('stat-correct').textContent = state.correctCount;
+      document.getElementById('stat-total').textContent = state.totalAttempts;
+      document.getElementById('stat-accuracy').textContent = `${acc}%`;
+    }
+
+    // ==================== SESSION-STEUERUNG & TIMER ====================
+    function formatSeconds(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerUI() {
+      const timerEl = document.getElementById('stat-timer');
+      if (config.duration === 0) {
+        timerEl.textContent = formatSeconds(state.elapsedSeconds);
+      } else {
+        timerEl.textContent = formatSeconds(state.remainingSeconds);
+      }
+    }
+
+    function applyInputVisibility() {
+      const btnBox = document.getElementById('input-buttons-container');
+      const pianoBox = document.getElementById('input-piano-container');
+      const accRow = document.getElementById('accidental-buttons-row');
+
+      if (config.inputMode === 'piano') {
+        btnBox.classList.add('hidden');
+        pianoBox.classList.remove('hidden');
+      } else if (config.inputMode === 'buttons') {
+        btnBox.classList.remove('hidden');
+        pianoBox.classList.add('hidden');
+      } else {
+        btnBox.classList.remove('hidden');
+        pianoBox.classList.remove('hidden');
+      }
+
+      if (config.accidental === 'none') {
+        accRow.classList.add('hidden');
+        accRow.classList.remove('grid');
+      } else {
+        accRow.classList.remove('hidden');
+        accRow.classList.add('grid');
+      }
+    }
+
+    function startSession() {
+      syncStartOptions();
+      clearInterval(state.timerInterval);
+
+      state.isRunning = true;
+      state.correctCount = 0;
+      state.totalAttempts = 0;
+      state.elapsedSeconds = 0;
+      state.remainingSeconds = config.duration;
+      state.locked = false;
+
+      document.getElementById('feedback-banner').innerHTML = '';
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('active-training-area').classList.remove('hidden');
+
+      applyInputVisibility();
+      updateStatsUI();
+      updateTimerUI();
+      generateNextNote();
+
+      state.timerInterval = setInterval(() => {
+        if (!state.isRunning) return;
+        state.elapsedSeconds++;
+
+        if (config.duration > 0) {
+          state.remainingSeconds--;
+          updateTimerUI();
+          if (state.remainingSeconds <= 0) {
+            finishSession('Zeit abgelaufen');
+          }
+        } else {
+          updateTimerUI();
+        }
+      }, 1000);
+    }
+
+    function finishSession(reasonText) {
+      state.isRunning = false;
+      clearInterval(state.timerInterval);
+
+      const acc = state.totalAttempts === 0
+        ? 0
+        : Math.round((state.correctCount / state.totalAttempts) * 100);
+      const finalScore = calculateScore(state.correctCount, state.totalAttempts);
+
+      document.getElementById('modal-reason').textContent = reasonText;
+      document.getElementById('res-final-score').textContent = finalScore;
+      document.getElementById('res-correct').textContent = `${state.correctCount} / ${state.totalAttempts}`;
+      document.getElementById('res-accuracy').textContent = `${acc}%`;
+      document.getElementById('res-time').textContent = formatSeconds(state.elapsedSeconds);
+
+      document.getElementById('result-modal').classList.remove('hidden');
+    }
+
+    function resetToStartScreen() {
+      state.isRunning = false;
+      clearInterval(state.timerInterval);
+      document.getElementById('result-modal').classList.add('hidden');
+      document.getElementById('active-training-area').classList.add('hidden');
+      document.getElementById('start-screen').classList.remove('hidden');
+      updateStartSummary();
+    }
+
+    // ==================== EINSTELLUNGEN ====================
+    function populateRangeSelects() {
+      const tMin = document.getElementById('range-treble-min');
+      const tMax = document.getElementById('range-treble-max');
+      const bMin = document.getElementById('range-bass-min');
+      const bMax = document.getElementById('range-bass-max');
+
+      TREBLE_SCALE.forEach(n => {
+        tMin.add(new Option(n.label, n.id));
+        tMax.add(new Option(n.label, n.id));
+      });
+      BASS_SCALE.forEach(n => {
+        bMin.add(new Option(n.label, n.id));
+        bMax.add(new Option(n.label, n.id));
+      });
+
+      tMin.value = config.trebleMin;
+      tMax.value = config.trebleMax;
+      bMin.value = config.bassMin;
+      bMax.value = config.bassMax;
+    }
+
+    function selectClef(clef) {
+      config.clef = clef;
+      ['treble', 'bass', 'both'].forEach(c => {
+        const btn = document.getElementById(`set-clef-${c}`);
+        if (c === clef) {
+          btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+          btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+        } else {
+          btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+          btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+        }
+      });
+    }
+
+    function selectAccidental(acc) {
+      config.accidental = acc;
+      ['none', 'sharp', 'both'].forEach(a => {
+        const btn = document.getElementById(`set-acc-${a}`);
+        if (a === acc) {
+          btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+          btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+        } else {
+          btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+          btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+        }
+      });
+    }
+
+    function applySettingsAndReturn() {
+      config.trebleMin = document.getElementById('range-treble-min').value;
+      config.trebleMax = document.getElementById('range-treble-max').value;
+      config.bassMin = document.getElementById('range-bass-min').value;
+      config.bassMax = document.getElementById('range-bass-max').value;
+      config.soundEnabled = document.getElementById('set-sound-enabled').checked;
+
+      updateStartSummary();
+      switchTab('train');
+
+      if (state.isRunning) {
+        applyInputVisibility();
+        generateNextNote();
+      }
+    }
+
+    // ==================== INITIALISIERUNG ====================
+    window.addEventListener('DOMContentLoaded', () => {
+      populateRangeSelects();
+      selectClef(config.clef);
+      selectAccidental(config.accidental);
+      setInputMode(config.inputMode);
+      renderPiano();
+      renderReferenceScales();
+      renderEnharmonicCards();
+      updateStartSummary();
+    });
+  </script>
+</body>
+</html>
