@@ -2,11 +2,16 @@
 <html lang="de-CH">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Notentrainer" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%234f46e5'/%3E%3Ctext x='90' y='122' font-size='104' text-anchor='middle' fill='white' font-family='serif'%3E%E2%99%A9%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#312E81" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Notentrainer CH – Notenlesen & Musiktheorie</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -771,21 +776,21 @@
     ];
 
     const BASS_SCALE = [
-      { id: 'E2', step: -2, label: 'E (E2)', base: 'E', midi: 40 },
-      { id: 'F2', step: -1, label: 'F (F2)', base: 'F', midi: 41 },
-      { id: 'G2', step: 0,  label: 'G (G2)', base: 'G', midi: 43 },
-      { id: 'A2', step: 1,  label: 'A (A2)', base: 'A', midi: 45 },
-      { id: 'H2', step: 2,  label: 'H (H2)', base: 'H', midi: 47 },
-      { id: 'C3', step: 3,  label: 'c (C3)', base: 'C', midi: 48 },
-      { id: 'D3', step: 4,  label: 'd (D3)', base: 'D', midi: 50 },
-      { id: 'E3', step: 5,  label: 'e (E3)', base: 'E', midi: 52 },
-      { id: 'F3', step: 6,  label: 'f (F3 - Bass-F)', base: 'F', midi: 53 },
-      { id: 'G3', step: 7,  label: 'g (G3)', base: 'G', midi: 55 },
-      { id: 'A3', step: 8,  label: 'a (A3)', base: 'A', midi: 57 },
-      { id: 'H3', step: 9,  label: 'h (H3)', base: 'H', midi: 59 },
-      { id: 'C4', step: 10, label: "c' (C4 - Schloss-C)", base: 'C', midi: 60 },
-      { id: 'D4', step: 11, label: "d' (D4)", base: 'D', midi: 62 },
-      { id: 'E4', step: 12, label: "e' (E4)", base: 'E', midi: 64 }
+      { id: 'E2', step: -1, label: 'E (E2)', base: 'E', midi: 40 },
+      { id: 'F2', step: 0,  label: 'F (F2)', base: 'F', midi: 41 },
+      { id: 'G2', step: 1,  label: 'G (G2)', base: 'G', midi: 43 },
+      { id: 'A2', step: 2,  label: 'A (A2)', base: 'A', midi: 45 },
+      { id: 'H2', step: 3,  label: 'H (H2)', base: 'H', midi: 47 },
+      { id: 'C3', step: 4,  label: 'c (C3)', base: 'C', midi: 48 },
+      { id: 'D3', step: 5,  label: 'd (D3)', base: 'D', midi: 50 },
+      { id: 'E3', step: 6,  label: 'e (E3)', base: 'E', midi: 52 },
+      { id: 'F3', step: 7,  label: 'f (F3 - Bass-F)', base: 'F', midi: 53 },
+      { id: 'G3', step: 8,  label: 'g (G3)', base: 'G', midi: 55 },
+      { id: 'A3', step: 9,  label: 'a (A3)', base: 'A', midi: 57 },
+      { id: 'H3', step: 10,  label: 'h (H3)', base: 'H', midi: 59 },
+      { id: 'C4', step: 11, label: "c' (C4 - Schloss-C)", base: 'C', midi: 60 },
+      { id: 'D4', step: 12, label: "d' (D4)", base: 'D', midi: 62 },
+      { id: 'E4', step: 13, label: "e' (E4)", base: 'E', midi: 64 }
     ];
 
     const SHARP_MAP = {
@@ -934,7 +939,9 @@
 
     function updateStartSummary() {
       const clefLabel = config.clef === 'treble' ? 'Violinschlüssel' : config.clef === 'bass' ? 'Bassschlüssel' : 'Gemischt';
-      const rangeLabel = config.clef === 'bass' ? `${config.bassMin} – ${config.bassMax}` : `${config.trebleMin} – ${config.trebleMax}`;
+      const rangeLabel = config.clef === 'bass' ? `${config.bassMin} – ${config.bassMax}`
+        : config.clef === 'both' ? `Violin ${config.trebleMin} – ${config.trebleMax} / Bass ${config.bassMin} – ${config.bassMax}`
+        : `${config.trebleMin} – ${config.trebleMax}`;
       let accLabel = 'Ohne Versetzungszeichen';
       if (config.accidental === 'sharp') accLabel = 'Nur mit Kreuz (♯)';
       else if (config.accidental === 'flat') accLabel = 'Nur mit B (♭)';
@@ -1087,7 +1094,7 @@
     // ==================== THEORIE: NACHSCHLAGE-TONLEITERN ====================
     function renderReferenceScales() {
       drawReferenceScale('ref-treble-svg', 'treble', TREBLE_SCALE.filter(n => n.step >= -3 && n.step <= 10));
-      drawReferenceScale('ref-bass-svg', 'bass', BASS_SCALE.filter(n => n.step >= 3 && n.step <= 9));
+      drawReferenceScale('ref-bass-svg', 'bass', BASS_SCALE.filter(n => n.step >= 4 && n.step <= 10));
     }
 
     function drawReferenceScale(svgId, clef, notes) {
@@ -1140,7 +1147,7 @@
         }
 
         html += `<text x="${cx}" y="142" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">${n.base}</text>`;
-        html += `<text x="${cx}" y="157" font-size="10" fill="#64748b" text-anchor="middle">${n.id}</text>`;
+        html += `<text x="${cx}" y="157" font-size="10" fill="#64748b" text-anchor="middle">${n.label.split(' ')[0]}</text>`;
         html += `</g>`;
       });
 
@@ -1348,7 +1355,13 @@
     }
 
     function onPianoKeyClick(noteGroup, midi, el) {
-      playMidiTone(midi, 0.35);
+      // Ton in die Oktave der aktuellen Note verschieben (Klaviatur zeigt nur c' bis h'')
+      let playMidi = midi;
+      if (state.isRunning && state.currentNote) {
+        while (playMidi - state.currentNote.midi > 6) playMidi -= 12;
+        while (state.currentNote.midi - playMidi > 6) playMidi += 12;
+      }
+      playMidiTone(playMidi, 0.35);
       handleAnswer(noteGroup, true, el);
     }
 
@@ -1604,6 +1617,7 @@
 
     function selectAccidental(acc) {
       config.accidental = acc;
+      if (state.isRunning) applyInputVisibility();
       ['none', 'sharp', 'flat', 'both'].forEach(a => {
         const btn = document.getElementById(`set-acc-${a}`);
         if (a === acc) {
@@ -1644,6 +1658,11 @@
         applyInputVisibility();
         generateNextNote();
       }
+    }
+
+    // ==================== INSTALLIERBAR (PWA) ====================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
 
     // ==================== INITIALISIERUNG ====================
