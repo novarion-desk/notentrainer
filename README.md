@@ -13,6 +13,7 @@ Live-App: https://novarion-desk.github.io/notentrainer/
 
 ## Zu einer älteren Version zurück
 
+- Version 2.2: https://novarion-desk.github.io/notentrainer/versions/v2.2/
 - Version 2.1: https://novarion-desk.github.io/notentrainer/versions/v2.1/
 - Version 2: https://novarion-desk.github.io/notentrainer/versions/v2/
 - Version 1: https://novarion-desk.github.io/notentrainer/versions/v1/

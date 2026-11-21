@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.2 – 21.11.2026
+- Neu: Zurück-Geste / Zurück-Taste (Handy, Tablet) geht einen Schritt zurück (Training → Start, Theorie/Einstellungen → Üben, Auswertung schliessen) statt die App zu schliessen.
+
 ## Version 2.1 – 21.11.2026
 - Neuer Knopf «💬 Feedback» in der Navigation: öffnet ein anonymes Formular für Fehler, Inhaltsfehler und Wünsche. Version und Gerät werden automatisch mitgegeben; es werden keine Namen abgefragt.
 
