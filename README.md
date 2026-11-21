@@ -13,6 +13,8 @@ Live-App: https://novarion-desk.github.io/notentrainer/
 
 ## Zu einer älteren Version zurück
 
+- Version 2.1: https://novarion-desk.github.io/notentrainer/versions/v2.1/
+- Version 2: https://novarion-desk.github.io/notentrainer/versions/v2/
 - Version 1: https://novarion-desk.github.io/notentrainer/versions/v1/
 
 Funktioniert die aktuelle Version nicht, den Link der vorherigen Version öffnen.
@@ -21,3 +23,6 @@ Danach Claude sagen, dass die alte Version wieder zur Hauptversion werden soll.
 ## Daten
 
 Keine Anmeldung, keine Speicherung – alles läuft im Browser.
+
+## Feedback
+Der Knopf «💬 Feedback» öffnet ein externes, anonymes Formular bei Tally (Fehler, Wünsche, Inhalte). Nur dann werden Angaben gesendet – zusammen mit App-Name, Version und Gerätetyp. Namen werden nicht abgefragt.

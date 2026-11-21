@@ -95,6 +95,7 @@
           <button id="nav-settings" onclick="switchTab('settings')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 transition">
             Einstellungen
           </button>
+          <button onclick="openAppFeedback()" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 transition" title="Feedback: Fehler melden, Wünsche äussern">💬 Feedback</button>
         </nav>
       </div>
     </div>
@@ -1678,5 +1679,9 @@
       updateStartSummary();
     });
   </script>
+<script>
+/* Feedback: öffnet das anonyme Tally-Formular (App, Version und Gerät werden mitgegeben, keine Personendaten) */
+function openAppFeedback(){var q=new URLSearchParams({app:'notentrainer',version:'2.1',geraet:(navigator.userAgent||'').slice(0,120)});window.open('https://tally.so/r/GeR9re?'+q.toString(),'_blank','noopener');}
+</script>
 </body>
 </html>

@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.1 – 21.11.2026
+- Neuer Knopf «💬 Feedback» in der Navigation: öffnet ein anonymes Formular für Fehler, Inhaltsfehler und Wünsche. Version und Gerät werden automatisch mitgegeben; es werden keine Namen abgefragt.
+
 ## Version 2 – 17.11.2026
 - **Fehler behoben:** Im Bassschlüssel standen alle Noten eine Stufe zu tief (unterste Linie war A statt G). Betraf Training und Bass-Übersicht.
 - Zoomen mit zwei Fingern auf Handy/Tablet wieder möglich.
