@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.3 – 22.11.2026
+- Neu: Fortschritt und Bestwerte (Punkte, Genauigkeit, Zeit pro Note) pro Einstellung, nur auf diesem Gerät gespeichert. Auf dem Startbildschirm, mit Zurücksetzen-Knopf.
+- Neu: Meldung in der Auswertung bei neuer Bestleistung.
+- Neu: «🖨 Arbeitsblatt zum Ausdrucken»: Noten nach den aktiven Einstellungen (8–18 Noten), Seite 1 Aufgaben mit Namen/Datum, Seite 2 Lösungen.
+
 ## Version 2.2 – 21.11.2026
 - Neu: Zurück-Geste / Zurück-Taste (Handy, Tablet) geht einen Schritt zurück (Training → Start, Theorie/Einstellungen → Üben, Auswertung schliessen) statt die App zu schliessen.
 

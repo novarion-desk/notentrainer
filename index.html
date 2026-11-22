@@ -15,6 +15,16 @@
   <title>Notentrainer CH – Notenlesen & Musiktheorie</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    @media print {
+      @page { size: A4; margin: 12mm; }
+      body > *:not(#sheet-modal) { display: none !important; }
+      #sheet-modal { position: static !important; display: block !important; background: #fff !important; padding: 0 !important; overflow: visible !important; }
+      #sheet-modal > div { box-shadow: none !important; border: 0 !important; max-width: none !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      .sheet-page { page-break-after: always; }
+      .sheet-page:last-child { page-break-after: auto; }
+      .sheet-item { break-inside: avoid; }
+    }
     * {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
@@ -162,9 +172,12 @@
               </button>
             </div>
 
+            <div id="progress-card" class="bg-white border border-slate-200 rounded-xl p-3.5 text-xs text-slate-600"></div>
+
             <button type="button" onclick="startSession()" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-base shadow-sm transition mt-2">
               ▶ Session starten
             </button>
+            <button type="button" onclick="openWorksheet()" class="w-full py-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition">🖨 Arbeitsblatt zum Ausdrucken</button>
           </div>
         </div>
       </div>
@@ -708,6 +721,23 @@
   </main>
 
   <!-- MODAL: AUSWERTUNG -->
+  <div id="sheet-modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 overflow-auto p-3 sm:p-6">
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-4 sm:p-6">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3 no-print">
+        <h3 class="text-lg font-extrabold text-slate-900">Arbeitsblatt</h3>
+        <button type="button" onclick="closeWorksheet()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none px-2" aria-label="Schliessen">✕</button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-3 text-xs font-bold no-print">
+        <span class="text-slate-600">Anzahl Noten</span>
+        <div id="sheet-count" class="flex gap-1.5"></div>
+        <button type="button" onclick="buildWorksheet()" class="px-3 py-2 rounded-xl border border-slate-300 bg-white">Neu mischen</button>
+        <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">🖨 Drucken / PDF</button>
+      </div>
+      <p class="text-[11px] text-slate-500 mb-3 no-print">Nimmt die aktiven Einstellungen (Schlüssel, Tonraum, Versetzungszeichen). Seite 1: Aufgaben, Seite 2: Lösungen.</p>
+      <div id="sheet-paper"></div>
+    </div>
+  </div>
+
   <div id="result-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-pop text-center space-y-5">
       <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-3xl mx-auto">
@@ -739,6 +769,8 @@
           <span id="res-time" class="text-lg font-bold text-slate-800">00:00</span>
         </div>
       </div>
+
+      <div id="res-best" class="hidden bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-sm font-semibold space-y-1"></div>
 
       <button onclick="resetToStartScreen()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition">
         Zurück zum Startbildschirm
@@ -953,7 +985,7 @@
     }
 
     // ==================== NOTENGENERATOR ====================
-    function generateNextNote() {
+    function pickNote(prevKey) {
       let chosenClef = config.clef;
       if (chosenClef === 'both') {
         chosenClef = Math.random() < 0.5 ? 'treble' : 'bass';
@@ -1027,13 +1059,17 @@
           key
         };
         attempts++;
-      } while (candidate.key === state.lastNoteKey && attempts < 12);
+      } while (candidate.key === prevKey && attempts < 12);
+      return candidate;
+    }
 
+    function generateNextNote() {
+      const candidate = pickNote(state.lastNoteKey);
       state.currentNote = candidate;
       state.lastNoteKey = candidate.key;
 
       document.getElementById('badge-clef').textContent =
-        chosenClef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
+        candidate.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
 
       renderStaff(candidate);
       playCurrentNoteSound();
@@ -1041,7 +1077,9 @@
 
     // ==================== SVG NOTENSYSTEM RENDERER ====================
     function renderStaff(note) {
-      const svg = document.getElementById('staff-svg');
+      document.getElementById('staff-svg').innerHTML = staffInner(note);
+    }
+    function staffInner(note) {
       const lineSpacing = 18;
       const topLineY = 55;
       const bottomLineY = topLineY + 4 * lineSpacing;
@@ -1089,7 +1127,40 @@
         html += `<line x1="${noteX - 9.5}" y1="${noteY + 2}" x2="${noteX - 9.5}" y2="${noteY + 46}" stroke="#0f172a" stroke-width="2.2" />`;
       }
 
-      svg.innerHTML = html;
+      return html;
+    }
+
+    // ==================== ARBEITSBLATT ====================
+    let sheetN = 16, sheetNotes = [];
+    function openWorksheet() {
+      syncStartOptions();
+      document.getElementById('sheet-modal').classList.remove('hidden');
+      buildWorksheet();
+    }
+    function closeWorksheet() { document.getElementById('sheet-modal').classList.add('hidden'); }
+    function setSheetCount(n) { sheetN = n; buildWorksheet(); }
+    function buildWorksheet() {
+      sheetNotes = [];
+      let prev = null;
+      const seen = new Set();
+      for (let i = 0; i < sheetN; i++) {
+        let nt, k = 0;
+        do { nt = pickNote(prev); k++; } while (seen.has(nt.key) && k < 30);
+        seen.add(nt.key); prev = nt.key; sheetNotes.push(nt);
+      }
+      document.getElementById('sheet-count').innerHTML = [8, 12, 16, 18].map(n =>
+        '<button type="button" onclick="setSheetCount(' + n + ')" class="px-3 py-1.5 rounded-lg border ' + (n === sheetN ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 bg-white') + '">' + n + '</button>').join('');
+      const items = sheetNotes.map((nt, i) =>
+        '<div class="sheet-item" style="border:1px solid #cbd5e1;border-radius:10px;padding:6px 8px;text-align:center"><div style="font-size:11px;color:#475569;text-align:left;font-weight:700">' + (i + 1) + '</div>' +
+        '<svg viewBox="30 22 300 140" style="width:100%;height:' + (sheetN > 16 ? 70 : 96) + 'px;display:block">' + staffInner(nt) + '</svg>' +
+        '<div style="border-bottom:1.5px solid #334155;height:22px;margin:4px 14px 0"></div></div>').join('');
+      const sol = sheetNotes.map((nt, i) => '<div style="padding:3px 0;font-size:15px"><b>' + (i + 1) + '</b> &nbsp;' + nt.displayName + ' <span style="color:#64748b;font-size:12px">(' + (nt.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel') + ')</span></div>').join('');
+      document.getElementById('sheet-paper').innerHTML =
+        '<div class="sheet-page"><h1 style="font-size:20px;font-weight:800;margin:0 0 4px">Notenlesen – Arbeitsblatt</h1>' +
+        '<div style="display:flex;gap:24px;font-size:13px;margin:8px 0 10px"><span>Name: <span style="display:inline-block;width:180px;border-bottom:1px solid #334155"></span></span><span>Datum: <span style="display:inline-block;width:100px;border-bottom:1px solid #334155"></span></span></div>' +
+        '<p style="font-size:13px;margin:0 0 10px;color:#334155">Schreibe den Namen jeder Note auf die Linie.</p>' +
+        '<div style="display:grid;grid-template-columns:repeat(' + (sheetN > 16 ? 3 : 2) + ',1fr);gap:10px">' + items + '</div></div>' +
+        '<div class="sheet-page"><h1 style="font-size:20px;font-weight:800;margin:0 0 10px">Lösungen</h1><div style="columns:2">' + sol + '</div></div>';
     }
 
     // ==================== THEORIE: NACHSCHLAGE-TONLEITERN ====================
@@ -1551,6 +1622,55 @@
       }, 1000);
     }
 
+    // ==================== FORTSCHRITT & BESTWERTE (nur auf diesem Gerät) ====================
+    let PROG = { n: 0, att: 0, cor: 0, best: {}, hist: [] };
+    try { const x = JSON.parse(localStorage.getItem('nt-prog')); if (x && typeof x === 'object') PROG = Object.assign(PROG, x); } catch (e) {}
+    function profileKey() {
+      return [config.clef, config.trebleMin + '-' + config.trebleMax, config.bassMin + '-' + config.bassMax, config.accidental, config.duration].join('|');
+    }
+    function profileLabel() {
+      const cl = config.clef === 'treble' ? 'Violinschlüssel' : config.clef === 'bass' ? 'Bassschlüssel' : 'Beide Schlüssel';
+      return cl + ' · ' + (config.duration ? Math.round(config.duration / 60 * 10) / 10 + ' Min.' : 'ohne Zeit');
+    }
+    function saveProg() { try { localStorage.setItem('nt-prog', JSON.stringify(PROG)); } catch (e) {} }
+    function recordSession(score, acc) {
+      PROG.n++; PROG.att += state.totalAttempts; PROG.cor += state.correctCount;
+      PROG.hist.push({ d: new Date().toISOString().slice(0, 10), acc, score });
+      PROG.hist = PROG.hist.slice(-30);
+      const k = profileKey(), b = PROG.best[k] || {};
+      const msgs = [];
+      if (state.totalAttempts >= 5) {
+        if (b.score === undefined || score > b.score) { if (b.score !== undefined) msgs.push('🎉 Neue Bestpunktzahl: ' + score + ' (bisher ' + b.score + ')'); b.score = score; }
+        if (b.acc === undefined || acc > b.acc) { if (b.acc !== undefined) msgs.push('🎯 Neue Bestgenauigkeit: ' + acc + '%'); b.acc = acc; }
+      }
+      if (state.correctCount >= 8 && state.elapsedSeconds > 0) {
+        const avg = Math.round(state.elapsedSeconds / state.correctCount * 10) / 10;
+        if (b.avg === undefined || avg < b.avg) { if (b.avg !== undefined) msgs.push('⚡ Neue Bestzeit: ' + avg + ' s pro Note (bisher ' + b.avg + ' s)'); b.avg = avg; }
+      }
+      PROG.best[k] = b;
+      saveProg();
+      return msgs;
+    }
+    function renderProgressCard() {
+      const el = document.getElementById('progress-card');
+      if (!el) return;
+      if (!PROG.n) { el.innerHTML = '<span class="text-slate-400">Noch keine Übungen auf diesem Gerät. Nach der ersten Session erscheinen hier deine Bestwerte.</span>'; return; }
+      const b = PROG.best[profileKey()] || {};
+      const acc = PROG.att ? Math.round(PROG.cor / PROG.att * 100) : 0;
+      const last = PROG.hist.slice(-8).map(h => '<span title="' + h.d + ': ' + h.acc + '%" style="display:inline-block;width:10px;border-radius:3px;background:#6366f1;height:' + Math.max(4, Math.round(h.acc * 0.28)) + 'px"></span>').join('');
+      el.innerHTML = '<div class="flex items-end justify-between gap-3"><div><div class="font-bold text-slate-800">Mein Fortschritt <span class="font-normal text-slate-500">(' + profileLabel() + ')</span></div>' +
+        '<div class="mt-1">Bestpunktzahl: <b>' + (b.score !== undefined ? b.score : '–') + '</b> · Bestgenauigkeit: <b>' + (b.acc !== undefined ? b.acc + '%' : '–') + '</b> · Bestzeit: <b>' + (b.avg !== undefined ? b.avg + ' s/Note' : '–') + '</b></div>' +
+        '<div class="mt-0.5 text-slate-500">Insgesamt ' + PROG.n + ' Sessions · ' + PROG.cor + ' richtige Noten · ' + acc + '% Genauigkeit</div></div>' +
+        '<div class="flex items-end gap-1" style="height:30px" aria-label="Genauigkeit der letzten Sessions">' + last + '</div></div>' +
+        '<button type="button" onclick="resetProgress()" class="mt-2 text-[11px] text-slate-400 hover:text-rose-600 underline">Fortschritt zurücksetzen</button>';
+    }
+    function resetProgress() {
+      if (!confirm('Fortschritt und Bestwerte auf diesem Gerät wirklich löschen?')) return;
+      PROG = { n: 0, att: 0, cor: 0, best: {}, hist: [] };
+      try { localStorage.removeItem('nt-prog'); } catch (e) {}
+      renderProgressCard();
+    }
+
     function finishSession(reasonText) {
       state.isRunning = false;
       clearInterval(state.timerInterval);
@@ -1566,6 +1686,10 @@
       document.getElementById('res-correct').textContent = `${state.correctCount} / ${state.totalAttempts}`;
       document.getElementById('res-accuracy').textContent = `${acc}%`;
       document.getElementById('res-time').textContent = formatSeconds(state.elapsedSeconds);
+      const bestMsgs = recordSession(finalScore, acc);
+      const rb = document.getElementById('res-best');
+      rb.innerHTML = bestMsgs.map(m => '<div>' + m + '</div>').join('');
+      rb.classList.toggle('hidden', !bestMsgs.length);
 
       document.getElementById('result-modal').classList.remove('hidden');
     }
@@ -1578,6 +1702,7 @@
       document.getElementById('active-training-area').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
       updateStartSummary();
+      renderProgressCard();
     }
 
     // ==================== EINSTELLUNGEN ====================
@@ -1677,11 +1802,12 @@
       renderReferenceScales();
       renderEnharmonicCards();
       updateStartSummary();
+      renderProgressCard();
     });
   </script>
 <script>
 /* Feedback: öffnet das anonyme Tally-Formular (App, Version und Gerät werden mitgegeben, keine Personendaten) */
-function openAppFeedback(){var q=new URLSearchParams({app:'notentrainer',version:'2.2',geraet:(navigator.userAgent||'').slice(0,120)});window.open('https://tally.so/r/GeR9re?'+q.toString(),'_blank','noopener');}
+function openAppFeedback(){var q=new URLSearchParams({app:'notentrainer',version:'2.3',geraet:(navigator.userAgent||'').slice(0,120)});window.open('https://tally.so/r/GeR9re?'+q.toString(),'_blank','noopener');}
 
 /* ===== Zurück-Geste (Handy): ein Schritt zurück statt App schliessen ===== */
 (function(){
