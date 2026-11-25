@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.4 – 25.11.2026
+- Neu: **Offline nutzbar.** Die App wird beim ersten Öffnen auf dem Gerät zwischengespeichert und läuft danach auch ohne Netz. Ist Netz da, kommt immer die neueste Version.
+- Das Design (Tailwind) liegt jetzt als Datei `tailwind.css` in der App statt von `cdn.tailwindcss.com` geladen zu werden: keine Verbindung zu fremden Servern mehr, kein Ausfallrisiko. Nur der Knopf «💬 Feedback» braucht Netz.
+
 ## Version 2.3 – 22.11.2026
 - Neu: Fortschritt und Bestwerte (Punkte, Genauigkeit, Zeit pro Note) pro Einstellung, nur auf diesem Gerät gespeichert. Auf dem Startbildschirm, mit Zurücksetzen-Knopf.
 - Neu: Meldung in der Auswertung bei neuer Bestleistung.

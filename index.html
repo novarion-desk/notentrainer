@@ -13,7 +13,6 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta name="mobile-web-app-capable" content="yes" />
   <title>Notentrainer CH – Notenlesen & Musiktheorie</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @media print {
       @page { size: A4; margin: 12mm; }
@@ -68,6 +67,7 @@
       animation: popIn 0.2s ease-out forwards;
     }
   </style>
+  <link rel="stylesheet" href="tailwind.css" />
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -1807,7 +1807,7 @@
   </script>
 <script>
 /* Feedback: öffnet das anonyme Tally-Formular (App, Version und Gerät werden mitgegeben, keine Personendaten) */
-function openAppFeedback(){var q=new URLSearchParams({app:'notentrainer',version:'2.3',geraet:(navigator.userAgent||'').slice(0,120)});window.open('https://tally.so/r/GeR9re?'+q.toString(),'_blank','noopener');}
+function openAppFeedback(){var q=new URLSearchParams({app:'notentrainer',version:'2.4',geraet:(navigator.userAgent||'').slice(0,120)});window.open('https://tally.so/r/GeR9re?'+q.toString(),'_blank','noopener');}
 
 /* ===== Zurück-Geste (Handy): ein Schritt zurück statt App schliessen ===== */
 (function(){

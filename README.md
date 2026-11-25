@@ -7,7 +7,8 @@ Live-App: https://novarion-desk.github.io/notentrainer/
 | Pfad | Inhalt |
 |---|---|
 | `index.html` | Aktuelle Version der App |
-| `manifest.webmanifest`, `sw.js`, `icons/` | Installierbar als App (Chrome: Menü → «App installieren») |
+| `manifest.webmanifest`, `sw.js`, `icons/` | Installierbar als App und offline nutzbar (Chrome: Menü → «App installieren») |
+| `tailwind.css` | Design (aus Tailwind v3 gebaut, nur die benutzten Klassen). Bei neuen Tailwind-Klassen in `index.html` neu bauen |
 | `versions/vX/` | Archiv älterer Versionen – jede ist direkt aufrufbar |
 | `CHANGELOG.md` | Was sich in welcher Version geändert hat |
 
